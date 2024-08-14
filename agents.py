@@ -1,9 +1,9 @@
 
-!pip install llama-index-core
-!pip install llama-index-readers-file
-!pip install llama-index-embeddings-openai
-!pip install llama-index-llms-llama-api
-!pip install 'crewai[tools]'
+#!pip install llama-index-core
+#!pip install llama-index-readers-file
+#!pip install llama-index-embeddings-openai
+#!pip install llama-index-llms-llama-api
+#!pip install 'crewai[tools]'
 
 import os
 from crewai import Agent, Task, Crew, Process
