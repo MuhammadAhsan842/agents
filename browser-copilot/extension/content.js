@@ -17,7 +17,7 @@
   const nodes=[...document.querySelectorAll('a[href],button,input:not([type=hidden]),textarea,select,[role=button],[role=link],[contenteditable=true]')].filter(e=>{const r=e.getBoundingClientRect();return visible(e)&&r.bottom>0&&r.top<innerHeight&&r.right>0&&r.left<innerWidth;});
   targets=new Map();
   const elements=nodes.slice(0,70).map((e,i)=>{const id='e'+i;targets.set(id,e);let href='';try{const u=new URL(e.getAttribute('href'),location.href);if(e.hasAttribute('href')&&['http:','https:'].includes(u.protocol)&&!u.username&&!u.password)href=u.href;}catch{}
-   return {id,tag:e.tagName.toLowerCase(),role:e.getAttribute('role')||'',label:label(e),href,editable:e.matches('input,textarea,[contenteditable=true]'),sensitive:sensitive(e),disabled:!!e.disabled||e.getAttribute('aria-disabled')==='true',...(e.tagName==='SELECT'?{options:[...e.options].slice(0,30).map(o=>({value:o.value,label:o.text}))}:{})};});
+   return {id,tag:e.tagName.toLowerCase(),role:e.getAttribute('role')||'',label:label(e),href,editable:e.matches('input,textarea,[contenteditable=true]')&&!e.readOnly&&!['file','checkbox','radio','button','submit'].includes(e.type),sensitive:sensitive(e),disabled:!!e.disabled||e.getAttribute('aria-disabled')==='true',...(e.tagName==='SELECT'?{options:[...e.options].slice(0,30).map(o=>({value:o.value,label:o.text,disabled:o.disabled||o.parentElement?.disabled===true}))}:{})};});
   snapshotId=crypto.randomUUID();signature=fingerprint();return {snapshotId,fingerprint:signature,url:location.href,title:document.title,text:text(),elements,truncated:nodes.length>70};
  }
  async function act(p){
@@ -30,7 +30,7 @@
    e.focus();if(e.isContentEditable)e.textContent=a.value;else{const proto=e.tagName==='TEXTAREA'?HTMLTextAreaElement.prototype:HTMLInputElement.prototype;Object.getOwnPropertyDescriptor(proto,'value').set.call(e,a.value);}
    e.dispatchEvent(new Event('input',{bubbles:true}));e.dispatchEvent(new Event('change',{bubbles:true}));
    if((e.isContentEditable?e.textContent:e.value)!==a.value)throw Error('Field did not retain the requested text');
-  }else if(a.action==='select') {if(e.tagName!=='SELECT'||![...e.options].some(o=>o.value===a.value))throw Error('Invalid option');e.value=a.value;e.dispatchEvent(new Event('input',{bubbles:true}));e.dispatchEvent(new Event('change',{bubbles:true}));if(e.value!==a.value)throw Error('Selection failed');}
+  }else if(a.action==='select') {if(e.tagName!=='SELECT'||![...e.options].some(o=>o.value===a.value&&!o.disabled&&!o.parentElement?.disabled))throw Error('Invalid option');e.value=a.value;e.dispatchEvent(new Event('input',{bubbles:true}));e.dispatchEvent(new Event('change',{bubbles:true}));if(e.value!==a.value)throw Error('Selection failed');}
   else if(a.action==='scroll'){if(!['up','down'].includes(a.value))throw Error('Invalid direction');window.scrollBy(0,(a.value==='up'?-1:1)*innerHeight*.8);}
   else throw Error('Unsupported DOM action');
   snapshotId='';return {executed:true,verified:['type','select'].includes(a.action),note:['type','select'].includes(a.action)?'Field value checked':'Dispatched; inspect the next snapshot to verify the outcome'};

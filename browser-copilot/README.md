@@ -177,3 +177,7 @@ Each action reports cumulative retry costs: wall time, model load time, prefill/
 These optimizations have automated regression coverage; speed improvements and live Qwen accuracy require measurement on your hardware. No 98% guarantee is established. Browser approval, recipient checks and delivery verification remain necessary.
 
 Technical references: [Ollama structured outputs](https://docs.ollama.com/capabilities/structured-outputs), [chat API timing counters](https://docs.ollama.com/api/chat), [model residency and memory configuration](https://docs.ollama.com/faq). Keep inference serialized on constrained hardware; check `ollama ps` for actual CPU/GPU placement before tuning memory or quantization. Do not assume lower KV-cache precision preserves task accuracy.
+
+### Reliability contracts and evaluation
+
+The next reliability pass adds BM25 context ranking, action-specific schema branches, dropdown/file/ambiguity contracts and a 16-case development evaluation suite with external JSONL support. See [research and acceptance protocol](docs/RELIABILITY_RESEARCH.md) for primary sources, implemented algorithms, tradeoffs and the requirements for a defensible 95% claim. No model weights were changed, and live accuracy remains unmeasured.
