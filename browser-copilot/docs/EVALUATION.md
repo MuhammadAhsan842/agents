@@ -4,7 +4,7 @@
 
 ## Included checks
 
-- 25 Node tests: auth/origin/host handling, state conflicts, stale file approvals, path confinement, schema and target checks, retries, scope-related policy, deterministic CSV summaries.
+- 31 Node tests: auth/origin/host handling, state conflicts, stale file approvals, path confinement, schema and target checks, retries, scope-related policy, deterministic CSV summaries.
 - 3 Python tests: DOCX content, XLSX formulas and string handling, PPTX slide/source structure.
 - Chromium integration suite: actual loaded extension, local fixture page and scripted model response. Requires installed Playwright Chromium. Not passed in the build environment.
 - `scripts/evaluate.js`: eight live-model single-step selection cases. Useful smoke test, far too small for an accuracy claim.

@@ -25,3 +25,11 @@ Version 0.2 checks:
 - List a new report output and authorize creation. Confirm it is created without a second prompt. Repeat with the file already present; confirm replacement requires review.
 - Ask for multiple named files. Simulate an early model `done`; confirm missing files block completion. Modify a delivered file externally; confirm final verification fails.
 - Create a CSV dashboard and open the HTML locally. Confirm escaped labels, correct summaries and responsive layout.
+
+Version 0.3 checks:
+- Open Atlas from the toolbar and dock the native panel on the right in Chrome settings. Change active tabs while idle; confirm context follows. Start a task, switch tabs, and confirm the task retains its original targets.
+- Enter product/target details directly in the prompt with Auto workflow. No saved brief should be required.
+- In the local CRM test, confirm no message exists before final review, mismatched recipient names/URLs are rejected, and one message is recorded after approval.
+- Change composer text during final review; the stale snapshot must block dispatch.
+- Record an uncertain send, then retry the same profile/message; the ledger must reject it.
+- Open a second idle panel/profile using the same backend; confirm history refreshes without overwriting a running session.

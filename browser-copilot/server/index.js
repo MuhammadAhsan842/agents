@@ -4,6 +4,7 @@ import {mkdirSync,existsSync,readFileSync,writeFileSync} from 'node:fs';
 import {resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {DatabaseSync} from 'node:sqlite';
+import {createOutreachLedger} from './outreach.js';
 import {renderDashboard} from './dashboard.js';
 import {summarizeCSV} from './csv.js';
 import {createFileTools} from './files.js';
@@ -17,6 +18,7 @@ export function createApp({dataDir=resolve('.data'),token,model=process.env.ATLA
  if(!existsSync(tokenPath)) writeFileSync(tokenPath,token,{mode:0o600});
  const db=new DatabaseSync(resolve(dataDir,'atlas.sqlite'));
  db.exec('PRAGMA journal_mode=WAL; CREATE TABLE IF NOT EXISTS state (id TEXT PRIMARY KEY, version INTEGER NOT NULL, body TEXT NOT NULL);');
+ const outreach=createOutreachLedger(db);
  const files=createFileTools(process.env.ATLAS_WORKSPACE||resolve(dataDir,'workspace'));
  let busy=false;
  const server=http.createServer(async(req,res)=>{
@@ -36,6 +38,9 @@ export function createApp({dataDir=resolve('.data'),token,model=process.env.ATLA
     const r=await fetch(ollama+'/api/tags',{signal:AbortSignal.timeout(5000)});if(!r.ok)throw Error('Cannot list Ollama models');const result=await r.json();
     return send(200,{workspace:files.list().root,model,installed:(result.models||[]).map(m=>m.name),skills});
    }
+   if(req.url==='/v1/outreach/prepare'&&req.method==='POST')return send(200,outreach.prepare(body));
+   if(req.url==='/v1/outreach/claim'&&req.method==='POST')return send(200,outreach.claim(body.id));
+   if(req.url==='/v1/outreach/resolve'&&req.method==='POST')return send(200,outreach.resolve(body));
    if(req.url==='/v1/files'&&req.method==='GET')return send(200,files.list());
    if(req.url==='/v1/files/analyze-csv'&&req.method==='POST'){const file=files.read(body.path);return send(200,{path:file.path,sha256:file.sha256,summary:summarizeCSV(file.text)});}
    if(req.url==='/v1/files/verify'&&req.method==='POST')return send(200,{files:files.verify(body.files)});

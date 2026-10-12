@@ -35,5 +35,13 @@
   else throw Error('Unsupported DOM action');
   snapshotId='';return {executed:true,verified:['type','select'].includes(a.action),note:['type','select'].includes(a.action)?'Field value checked':'Dispatched; inspect the next snapshot to verify the outcome'};
  }
- globalThis.__atlas={snapshot,act};
+ function draft(p){
+  if(p.snapshotId!==snapshotId||p.fingerprint!==signature||fingerprint()!==signature)throw Error('Page changed before message review');
+  const candidates=[...targets.entries()].filter(([,e])=>e.matches('textarea,[contenteditable=true]')&&!sensitive(e)&&visible(e)&&(e.isContentEditable?e.textContent:e.value).trim());
+  if(candidates.length!==1)throw Error('Cannot identify one unambiguous message composer. Close other composers and try again.');
+  const [id,e]=candidates[0];const message=e.isContentEditable?e.textContent:e.value;
+  if(message.length>4000)throw Error('Message exceeds the 4000-character review limit');
+  return {composerId:id,message};
+ }
+ globalThis.__atlas={snapshot,act,draft};
 })();

@@ -3,3 +3,7 @@
 #fileSection,#planReview{margin-top:20px;border-top:1px solid var(--line);padding-top:16px}#files{max-height:120px;overflow:auto;white-space:pre-wrap}#workspacePath{overflow-wrap:anywhere}#planReview{background:var(--mint);padding:16px;border-radius:12px}.composer-top{flex-wrap:wrap}
 
 .workspace-toolbar{display:flex;justify-content:space-between;align-items:center;padding:12px 22px 0;font-size:11px}.workspace-toolbar button{font-size:11px}#taskState{color:var(--green)}#deliverablesSection{margin-top:20px;padding:16px;border:1px solid var(--line);background:white;border-radius:12px}.deliverable{font-size:12px;overflow-wrap:anywhere;padding:9px 0;border-bottom:1px solid var(--line)}#planReview label{font-size:11px}body.workspace{max-width:1000px;margin:auto}body.workspace footer{max-width:1000px;margin:auto}body.workspace main{padding-bottom:245px}body.workspace .examples{grid-template-columns:repeat(3,1fr)}@media(max-width:600px){body.workspace .examples{grid-template-columns:1fr}}
+
+#sendReview label{display:block;font-size:11px;margin-top:8px}#sendReview input{width:100%;padding:8px;border:1px solid var(--line);border-radius:6px}#deliveryReview{background:#fff8e6;padding:16px;border:1px solid #e4d7b8;border-radius:12px;margin-top:18px}
+
+.page-context{margin:14px 22px 0;padding:13px;background:var(--mint);border-radius:10px}.page-context strong{display:block;font-size:12px;white-space:nowrap;text-overflow:ellipsis;overflow:hidden;margin-top:5px}.page-context .check{margin-bottom:0;font-size:10px}#syncHistory{font-size:11px}

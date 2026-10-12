@@ -101,7 +101,7 @@ Keep `.data/token` private. SQLite history and captured evidence are stored loca
 ## Validation
 
 ```bash
-npm test                         # 25 deterministic tests
+npm test                         # 31 deterministic tests
 npm run check                    # JavaScript syntax + manifest entrypoints
 python3 tests/artifacts.test.py   # 3 Office structure/content tests
 node scripts/evaluate.js          # actual local Qwen, 8 single-step smoke cases
@@ -112,7 +112,7 @@ npx playwright install chromium
 node tests/browser.e2e.js
 ```
 
-At delivery, **25 Node tests and 3 Office tests passed**. The real-Chromium suite is included but **was not executed successfully in the build environment**: no browser binary was installed and the download failed. The Qwen model was not available in that environment, so model accuracy and performance are **unmeasured**. The browser test uses a scripted Ollama fixture and test-only loopback permission; it tests orchestration, not intelligence. Site-permission prompts need manual verification.
+At delivery, **31 Node tests and 3 Office tests passed**. The real-Chromium suite is included but **was not executed successfully in the build environment**: no browser binary was installed and the download failed. The Qwen model was not available in that environment, so model accuracy and performance are **unmeasured**. The browser test uses a scripted Ollama fixture and test-only loopback permission; it tests orchestration, not intelligence. Site-permission prompts need manual verification.
 
 ## Limits you should know before production
 
@@ -156,3 +156,14 @@ Example task in Files mode:
 The generated dashboard is a static HTML snapshot with metric cards and a summary table. It is not hosted, interactive, or automatically refreshed.
 
 The full workspace and side panel share an origin-level execution lock, preventing simultaneous runs in the same Chrome profile. Separate Chrome profiles still rely on backend state conflict checks. Review files in the configured local folder. Cloud folders/connectors remain unimplemented.
+
+## Version 0.3: browser-first side panel and outreach checks
+
+- Native Chrome side panel with current-page context and optional active-tab following. Set Chrome's side-panel position to the right if it is on the left.
+- Product details and target criteria can be supplied directly in the prompt. Auto workflow selects research, outreach or portal guidance.
+- Idle history refresh every 15 seconds between profiles using the same backend, with conflict protection during work.
+- Exact-message review for recognized Send controls; recipient/profile confirmation and persistent exact-message duplicate protection.
+- Explicit unverified-delivery state and user-confirmed outcome recording.
+- A local fictional CRM scenario with scripted-model and live-Qwen modes, plus an environment diagnostic command.
+
+See [OUTREACH.md](docs/OUTREACH.md) for the prompt, test commands and precise limitations. At this revision, 31 Node tests pass. Real-browser tests remain blocked in the build environment by the Chromium download failure; local Ollama is not available here. No LinkedIn messaging reliability or 98% accuracy claim has been established.

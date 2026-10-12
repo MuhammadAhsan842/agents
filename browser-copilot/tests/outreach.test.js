@@ -1,0 +1,13 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {DatabaseSync} from 'node:sqlite';
+import {createOutreachLedger} from '../server/outreach.js';
+import {isSendAction,buildLeadGoal,validateRecipient,chooseWorkflow} from '../extension/outreach-policy.js';
+const draft={recipient:'Ada Example',profileUrl:'https://crm.example/leads/ada',message:'Hello Ada. Would a demo be useful?'};
+test('outreach accepts product details directly in the prompt',()=>{assert.throws(()=>buildLeadGoal('',{}),/product/);assert.ok(buildLeadGoal('My product is document search. Find UK operations leaders.').includes('document search'));assert.ok(buildLeadGoal('Find a lead',{product:'Document search',criteria:'Operations leaders'}).includes('Document search'));});
+test('recognized send controls trigger exact-message review',()=>{const page={elements:[{id:'e1',label:'Send message'}]};assert.equal(isSendAction({action:'click',target:'e1'},page),true);assert.equal(isSendAction({action:'type',target:'e1'},page),false);});
+test('recipient verification binds name and current profile URL',()=>{const page={url:draft.profileUrl,text:'Ada Example\nOperations Director'};assert.equal(validateRecipient(draft.recipient,draft.profileUrl,page).recipient,draft.recipient);assert.throws(()=>validateRecipient('Other Person',draft.profileUrl,page));assert.throws(()=>validateRecipient(draft.recipient,'https://crm.example/leads/other',page));});
+test('one message can be claimed only once, including after uncertainty',()=>{const db=new DatabaseSync(':memory:');try{const ledger=createOutreachLedger(db);const first=ledger.prepare(draft);assert.equal(ledger.prepare(draft).id,first.id);assert.equal(ledger.claim(first.id).status,'dispatching');assert.throws(()=>ledger.claim(first.id));assert.throws(()=>ledger.prepare(draft),/already/);ledger.resolve({id:first.id,status:'uncertain'});assert.throws(()=>ledger.prepare(draft),/already/);assert.equal(ledger.resolve({id:first.id,status:'user_confirmed'}).status,'user_confirmed');}finally{db.close();}});
+test('drafts cannot be marked delivered before a send attempt',()=>{const db=new DatabaseSync(':memory:');try{const ledger=createOutreachLedger(db);const first=ledger.prepare(draft);assert.throws(()=>ledger.resolve({id:first.id,status:'user_confirmed'}));assert.throws(()=>ledger.resolve({id:first.id,status:'model_claimed'}));}finally{db.close();}});
+
+test('workflow routing follows the prompt and honors explicit selection',()=>{assert.equal(chooseWorkflow('auto','Find leads for my product'),'leads');assert.equal(chooseWorkflow('auto','Pull dashboard metrics'),'portal');assert.equal(chooseWorkflow('auto','Summarize this page'),'research');assert.equal(chooseWorkflow('research','Find leads'),'research');});
