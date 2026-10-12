@@ -13,6 +13,7 @@
     "doctor": "node scripts/doctor.js",
     "test:browser": "node tests/browser.e2e.js",
     "evaluate": "node scripts/evaluate.js",
-    "test:outreach": "node tests/outreach.e2e.js"
+    "test:outreach": "node tests/outreach.e2e.js",
+    "evaluate:compare": "node scripts/compare.js"
   }
 }

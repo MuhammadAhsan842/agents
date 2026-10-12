@@ -20,5 +20,5 @@ export function summarize(results,planned,distinctCases){
   abstained:executable.filter(r=>r.action.action==='ask').length,
   firstRunInterval:first.length===distinctCases&&first.every(r=>r.status!=='error')?wilson(firstPassed,distinctCases):null,
   intervalAssumption:'Distinct tasks must be independently sampled and representative; repeats are excluded.',
-  latencyMs:{p50:pct(.5),p95:pct(.95)},productionAccuracyEstablished:false};
+  latencyMs:{p50:pct(.5),p95:pct(.95)},modelAbstentions:results.filter(r=>r.diagnostics?.outcome==='model_abstention').length,validationFallbacks:results.filter(r=>r.diagnostics?.outcome==='validation_fallback').length,actionableCases:executable.length,actionableSuccesses:completed,productionAccuracyEstablished:false};
 }
