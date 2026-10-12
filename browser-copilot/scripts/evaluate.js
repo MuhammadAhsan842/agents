@@ -10,7 +10,22 @@ const cases=[
  {goal:'Read the local file brief.md.',scope:'files',expected:'read_file',target:'brief.md'},
  {goal:'Compute numeric column summaries for revenue.csv.',scope:'files',expected:'analyze_csv',target:'revenue.csv'}
 ];
-let passed=0;const results=[];
-for(const c of cases){const start=Date.now();try{const r=await plan({goal:c.goal,scope:c.scope||'browser',observation:{...observation,files:[{path:'brief.md',bytes:100},{path:'revenue.csv',bytes:200}]},tabs:[{id:2,title:'Pricing',url:'https://example.test/pricing'}]},{model:process.env.ATLAS_MODEL||'qwen3.5:0.8b',ollama:process.env.OLLAMA_URL||'http://127.0.0.1:11434'});const ok=r.action.action===c.expected&&(!c.target||r.action.target===c.target)&&(!c.value||r.action.value===c.value);passed+=Number(ok);results.push({goal:c.goal,ok,action:r.action,ms:Date.now()-start});}catch(e){results.push({goal:c.goal,ok:false,error:e.message});}}
-console.log(JSON.stringify({metric:'single-step fixture selection; NOT end-to-end browser success',model:process.env.ATLAS_MODEL||'qwen3.5:0.8b',passed,total:cases.length,rate:passed/cases.length,results},null,2));
-if(passed!==cases.length)process.exitCode=1;
+const config={model:process.env.ATLAS_MODEL||'qwen3.5:0.8b',ollama:process.env.OLLAMA_URL||'http://127.0.0.1:11434'};
+const repeats=Number(process.env.ATLAS_EVAL_REPEATS||3);
+if(!Number.isInteger(repeats)||repeats<1||repeats>100)throw Error('ATLAS_EVAL_REPEATS must be 1–100');
+const results=[];
+const measuredAvailable=()=>results.some(r=>r.status!=='error');
+for(let repeat=0;repeat<repeats;repeat++)for(const c of cases){
+ const start=Date.now();
+ try{
+  const r=await plan({goal:c.goal,scope:c.scope||'browser',observation:{...observation,files:[{path:'brief.md',bytes:100},{path:'revenue.csv',bytes:200}]},tabs:[{id:2,title:'Pricing',url:'https://example.test/pricing'}]},config);
+  const ok=r.action.action===c.expected&&(!c.target||r.action.target===c.target)&&(!c.value||r.action.value===c.value);
+  results.push({repeat,goal:c.goal,status:ok?'passed':r.action.action==='ask'?'abstained':'failed',action:r.action,metrics:r.metrics,ms:Date.now()-start});
+ }catch(e){results.push({repeat,goal:c.goal,status:'error',error:e.message,ms:Date.now()-start});}
+ // An unavailable model is not a measured zero-percent accuracy score.
+ if(!measuredAvailable()&&results[0]?.status==='error'){repeat=repeats;break;}
+}
+const measured=results.filter(r=>r.status!=='error'),passed=results.filter(r=>r.status==='passed').length;
+const times=measured.map(r=>r.ms).sort((a,b)=>a-b),pct=p=>times.length?times[Math.max(0,Math.ceil(times.length*p)-1)]:null;
+console.log(JSON.stringify({metric:'single-step fixture selection; NOT end-to-end browser success',model:config.model,repeats,planned:cases.length*repeats,completed:measured.length,passed,abstained:results.filter(r=>r.status==='abstained').length,errors:results.filter(r=>r.status==='error').length,rate:measured.length?passed/measured.length:null,latencyMs:{p50:pct(.5),p95:pct(.95)},results},null,2));
+if(passed!==cases.length*repeats)process.exitCode=1;

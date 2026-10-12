@@ -167,3 +167,13 @@ The full workspace and side panel share an origin-level execution lock, preventi
 - A local fictional CRM scenario with scripted-model and live-Qwen modes, plus an environment diagnostic command.
 
 See [OUTREACH.md](docs/OUTREACH.md) for the prompt, test commands and precise limitations. At this revision, 31 Node tests pass. Real-browser tests remain blocked in the build environment by the Chromium download failure; local Ollama is not available here. No LinkedIn messaging reliability or 98% accuracy claim has been established.
+
+### Small-model optimization update
+
+Browser-only requests omit file-generation instructions. Action schemas exclude unavailable controls/actions and constrain browser targets to IDs included in the compact context. Independent validation and user review still apply. Relevant controls receive priority; relevant text retains adjacent lines to preserve values and units. Both planning and execution use an 8192-token context and a 10-minute model keep-alive. Truncated model output is rejected before execution.
+
+Each action reports cumulative retry costs: wall time, model load time, prefill/decode time, prompt/output tokens and cached tokens. `ATLAS_EVAL_REPEATS=3 npm run evaluate` runs repeated fixture selections and reports p50/p95 latency, passes, abstentions and errors separately. An unavailable model produces `rate: null`, never an invented accuracy score. This is a small diagnostic suite, not proof of production or end-to-end outreach accuracy.
+
+These optimizations have automated regression coverage; speed improvements and live Qwen accuracy require measurement on your hardware. No 98% guarantee is established. Browser approval, recipient checks and delivery verification remain necessary.
+
+Technical references: [Ollama structured outputs](https://docs.ollama.com/capabilities/structured-outputs), [chat API timing counters](https://docs.ollama.com/api/chat), [model residency and memory configuration](https://docs.ollama.com/faq). Keep inference serialized on constrained hardware; check `ollama ps` for actual CPU/GPU placement before tuning memory or quantization. Do not assume lower KV-cache precision preserves task accuracy.
