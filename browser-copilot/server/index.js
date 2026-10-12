@@ -4,6 +4,7 @@ import {mkdirSync,existsSync,readFileSync,writeFileSync} from 'node:fs';
 import {resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {DatabaseSync} from 'node:sqlite';
+import {renderDashboard} from './dashboard.js';
 import {summarizeCSV} from './csv.js';
 import {createFileTools} from './files.js';
 import {plan,skills,makePlan} from './planner.js';
@@ -37,6 +38,8 @@ export function createApp({dataDir=resolve('.data'),token,model=process.env.ATLA
    }
    if(req.url==='/v1/files'&&req.method==='GET')return send(200,files.list());
    if(req.url==='/v1/files/analyze-csv'&&req.method==='POST'){const file=files.read(body.path);return send(200,{path:file.path,sha256:file.sha256,summary:summarizeCSV(file.text)});}
+   if(req.url==='/v1/files/verify'&&req.method==='POST')return send(200,{files:files.verify(body.files)});
+   if(req.url==='/v1/files/dashboard-preview'&&req.method==='POST'){if(!body.target?.endsWith('.html'))throw Error('Dashboard output must end in .html');const source=files.read(body.source);return send(200,files.preview({action:'write_file',target:body.target,value:renderDashboard(source.text,source.path)}));}
    if(req.url==='/v1/files/read'&&req.method==='POST')return send(200,files.read(body.path));
    if(req.url==='/v1/files/preview'&&req.method==='POST')return send(200,files.preview(body.action));
    if(req.url==='/v1/files/commit'&&req.method==='POST')return send(200,await files.commit(body.ticket));

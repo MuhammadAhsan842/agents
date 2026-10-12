@@ -39,5 +39,9 @@ export function createFileTools(folder){
    if(digest(action.target)!==before)throw Error('File changed while generating output');renameSync(temporary,full);return {path:action.target,bytes:lstatSync(full).size,sha256:digest(action.target)};
   }finally{if(existsSync(temporary))unlinkSync(temporary);}
  }
- return {list,read,preview,commit};
+ function verify(items){
+  if(!Array.isArray(items)||items.length>50)throw Error('Invalid deliverable list');
+  return items.map(item=>{try{const full=path(item.path),sha256=digest(item.path);const bytes=existsSync(full)?lstatSync(full).size:0;return {path:item.path,bytes,sha256,verified:bytes>0&&sha256===item.sha256};}catch{return {path:item.path,verified:false};}});
+ }
+ return {list,read,preview,commit,verify};
 }

@@ -22,7 +22,7 @@ try{
  const errors=[];panel.on('pageerror',e=>errors.push(e.message));await panel.locator('#token').fill('e2e-token');await panel.locator('#connect').click();await panel.waitForFunction(()=>document.getElementById('connection').textContent.includes('Connected'));
  await panel.screenshot({path:join(dir,'panel.png'),fullPage:true});
  await panel.locator('#tabs input').first().check();await panel.locator('#prompt').fill('Fill Full name with Ahsan.');await panel.locator('#run').click();await panel.locator('#planReview').waitFor({state:'visible'});await panel.locator('#acceptPlan').click();await panel.locator('#approval').waitFor({state:'visible'});assert.notEqual(await page.locator('#name').inputValue(),'Ahsan');
- await panel.locator('#reviewed').check();await panel.locator('#approve').click();await panel.waitForFunction(()=>document.getElementById('status').textContent.includes('Answer ready'),{},{timeout:15000});assert.equal(await page.locator('#name').inputValue(),'Ahsan');assert.equal(errors.length,0,errors.join('\n'));
+ await panel.locator('#reviewed').check();await panel.locator('#approve').click();await panel.waitForFunction(()=>document.getElementById('status').textContent.includes('Task finished'),{},{timeout:15000});assert.equal(await page.locator('#name').inputValue(),'Ahsan');assert.equal(errors.length,0,errors.join('\n'));
  // Persisted sessions survive reloading the UI.
  await panel.reload();await panel.waitForFunction(()=>document.querySelector('#timeline')?.textContent.includes('name field was filled'));
  console.log('PASS: real extension loads, pairs, reads DOM, filters hidden/credential values, blocks stale snapshots, gates actions, executes typing and restores history.');

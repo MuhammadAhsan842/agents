@@ -19,3 +19,9 @@ Run on a local test site or a service where automation is authorized before usin
 - Enable read-only mode. Ask for a write; expect an ask/blocked action, not an executed change.
 
 Release status: these manual checks remain required. Automated unit tests are not a substitute for Chrome permission UX, real-site behavior or local-model benchmarking.
+
+Version 0.2 checks:
+- Start in the full workspace, close the side panel, and verify the task remains visible in the workspace. Confirm a second panel cannot start a concurrent task.
+- List a new report output and authorize creation. Confirm it is created without a second prompt. Repeat with the file already present; confirm replacement requires review.
+- Ask for multiple named files. Simulate an early model `done`; confirm missing files block completion. Modify a delivered file externally; confirm final verification fails.
+- Create a CSV dashboard and open the HTML locally. Confirm escaped labels, correct summaries and responsive layout.

@@ -26,8 +26,8 @@ npm start
 2. Click Atlas in the Chrome toolbar. Paste the pairing token printed by `npm start` into **Settings → Pairing token**. Choose **Connect & sync**.
 3. For browser work, select tabs, click **Allow selected sites**, and accept Chrome's site-access prompt. Atlas never exports your browser cookies.
 4. Choose **Browser**, **Files**, or **Browser + files**, describe the goal, and click **Start task**.
-5. Edit the proposed plan if needed and approve it. Review each browser mutation or file write. Read-only capture and file reads can continue automatically.
-6. Keep the panel open during a run. Use **Stop** before steering a task with a revised prompt. Already-dispatched actions cannot be undone.
+5. Edit the proposed plan and list required output filenames. Optionally authorize creation of those exact new files without further prompts. Overwrites, renames, and browser mutations still require review. A task cannot finish while named outputs are missing.
+6. For longer work, click **Open full workspace** before starting. A run started in that tab can continue with the side panel closed; keep the workspace tab, Chrome, and backend open. This does not transfer an already-running panel task. Use **Stop** before steering a task. Already-dispatched actions cannot be undone.
 
 For stricter pairing, copy the extension ID shown in Settings and restart the server with `ATLAS_EXTENSION_ID=your_extension_id npm start` (keep the other environment variables exported).
 
@@ -41,6 +41,8 @@ For stricter pairing, copy the extension ID shown in Settings and restart the se
 | Multi-tab research | Up to three independent snapshot reads concurrently; ordered source storage and Markdown export |
 | Local files | Scoped folder listing; text/Markdown/CSV/JSON/HTML/XML/YAML reads, writes and renames |
 | Quantitative CSV work | Deterministic full-file numeric-column summaries, quoted-field parsing and explicit malformed-input errors |
+| Static dashboard output | CSV-to-HTML dashboard with deterministic metrics, escaped data and no remote resources |
+| Named deliverables | Task completion checks required filenames against tool results, then verifies file size and SHA256 |
 | Office output | DOCX reports, XLSX tables with restricted working formulas, PPTX briefs; optional Python dependencies |
 | Review and control | Plan editor, action preview, one-action browser approval, single-use file commit tickets, stop control |
 | History and preferences | SQLite backend, local browser cache, shared history/instructions across profiles connected to the same backend |
@@ -99,7 +101,7 @@ Keep `.data/token` private. SQLite history and captured evidence are stored loca
 ## Validation
 
 ```bash
-npm test                         # 20 deterministic tests
+npm test                         # 25 deterministic tests
 npm run check                    # JavaScript syntax + manifest entrypoints
 python3 tests/artifacts.test.py   # 3 Office structure/content tests
 node scripts/evaluate.js          # actual local Qwen, 8 single-step smoke cases
@@ -110,13 +112,13 @@ npx playwright install chromium
 node tests/browser.e2e.js
 ```
 
-At delivery, **20 Node tests and 3 Office tests passed**. The real-Chromium suite is included but **was not executed successfully in the build environment**: no browser binary was installed and the download failed. The Qwen model was not available in that environment, so model accuracy and performance are **unmeasured**. The browser test uses a scripted Ollama fixture and test-only loopback permission; it tests orchestration, not intelligence. Site-permission prompts need manual verification.
+At delivery, **25 Node tests and 3 Office tests passed**. The real-Chromium suite is included but **was not executed successfully in the build environment**: no browser binary was installed and the download failed. The Qwen model was not available in that environment, so model accuracy and performance are **unmeasured**. The browser test uses a scripted Ollama fixture and test-only loopback permission; it tests orchestration, not intelligence. Site-permission prompts need manual verification.
 
 ## Limits you should know before production
 
 - No hosted account sync, subscriptions, billing or cross-device cloud relay. Browser profiles on the same machine can share one backend. Concurrent saves fail visibly rather than overwrite newer history.
 - No arbitrary third-party/MCP plugin installation, OAuth app connectors or cloud-folder integration. The current tools are built-in browser, local-file and artifact capabilities; reusable instructions are editable.
-- The runner lives in the side panel. Closing it interrupts the workflow. No unattended background service, durable automatic resumption, schedules or multi-agent runtime.
+- The runner lives in the UI that started it: side panel or full workspace tab. Closing that runner interrupts the workflow. Starting in the full workspace lets you close the side panel. Chrome may still suspend/freeze tabs; this is not a durable unattended service. No automatic resumption, schedules or multi-agent runtime.
 - DOM-only observation: no screenshot reasoning/OCR, PDF ingestion, canvas interpretation, shadow-DOM traversal or cross-origin iframe automation. Native file pickers, CAPTCHAs, 2FA and protected browser pages need manual handling.
 - Page snapshots are bounded: up to 70 visible controls and 14,000 text characters before additional model-context pruning. This can omit relevant controls/data. Scroll or narrow the page/task.
 - A click being dispatched or a page changing is not proof a message was delivered. Unchanged-click outcomes pause. Pending actions after interruption require manual checking and a new session to avoid automatic repetition.
@@ -134,3 +136,23 @@ See [ARCHITECTURE.md](docs/ARCHITECTURE.md), [EVALUATION.md](docs/EVALUATION.md)
 - [Qwen 3.5 tags](https://ollama.com/library/qwen3.5)
 - [Cowork product reference](https://claude.com/product/cowork)
 - [LinkedIn prohibited software and extensions](https://www.linkedin.com/help/linkedin/answer/a1341387)
+
+## Version 0.2: goal delegation and finished outputs
+
+During plan review, list the output files you expect, for example:
+
+```text
+reports/revenue.xlsx
+reports/summary.docx
+reports/dashboard.html
+```
+
+Choose **Create these listed files automatically** to authorize new-file creation for those exact paths. Existing-file replacements and renames always pause for review. File verification checks existence, non-empty bytes and matching SHA256, not factual correctness, visual layout or website outcomes.
+
+Example task in Files mode:
+
+> Analyze revenue.csv, produce reports/revenue.xlsx and reports/summary.docx, and create reports/dashboard.html using the create_dashboard tool. Include source provenance. Verify all outputs before finishing.
+
+The generated dashboard is a static HTML snapshot with metric cards and a summary table. It is not hosted, interactive, or automatically refreshed.
+
+The full workspace and side panel share an origin-level execution lock, preventing simultaneous runs in the same Chrome profile. Separate Chrome profiles still rely on backend state conflict checks. Review files in the configured local folder. Cloud folders/connectors remain unimplemented.

@@ -6,6 +6,10 @@ test('API authentication, CORS, durable history and optimistic concurrency',asyn
   assert.equal((await fetch(base+'/v1/state',{headers:{...headers,Origin:'https://evil.test'}})).status,403);
   assert.equal(await new Promise((resolve,reject)=>{const req=http.get(base+'/v1/state',{headers:{...headers,Host:'evil.test'}},res=>{res.resume();resolve(res.statusCode)});req.on('error',reject)}),403);
   const preflight=await fetch(base+'/v1/state',{method:'OPTIONS',headers:{Origin:'chrome-extension://'+'a'.repeat(32)}});assert.equal(preflight.status,204);
+  const post=async(path,data)=>{const response=await fetch(base+path,{method:'POST',headers,body:JSON.stringify(data)});assert.equal(response.status,200);return response.json();};
+  const source=await post('/v1/files/preview',{action:{action:'write_file',target:'sales.csv',value:'month,revenue\nJune,20\nJuly,22'}});await post('/v1/files/commit',{ticket:source.ticket});
+  const dashboard=await post('/v1/files/dashboard-preview',{source:'sales.csv',target:'dashboard.html'});assert.equal(dashboard.willOverwrite,false);assert.ok(dashboard.preview.includes('42'));
+  const output=await post('/v1/files/commit',{ticket:dashboard.ticket});const checked=await post('/v1/files/verify',{files:[output]});assert.equal(checked.files[0].verified,true);
   let r=await fetch(base+'/v1/state',{headers});assert.deepEqual(await r.json(),{version:0,state:{sessions:[]}});
   const body=JSON.stringify({version:0,state:{sessions:[{id:'one',title:'Research'}]}});
   r=await fetch(base+'/v1/state',{method:'PUT',headers,body});assert.equal((await r.json()).version,1);

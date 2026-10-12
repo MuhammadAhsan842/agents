@@ -18,7 +18,7 @@ flowchart TD
   C --> D[Answer and files]
 ```
 
-The browser side panel owns orchestration. The service worker opens the panel; it does not execute a hidden autonomous loop. DOM code runs in Chrome's isolated world and stores short-lived element references there. The model receives compact labels and IDs, never an executable browser script.
+The side panel or full workspace tab that starts a task owns orchestration. An origin-level Web Lock prevents concurrent runners in the same Chrome profile. The service worker opens the panel; it does not execute a hidden autonomous loop. DOM code runs in Chrome's isolated world and stores short-lived element references there. The model receives compact labels and IDs, never an executable browser script.
 
 The Node backend handles local model calls, SQLite state, scoped files and Office generation. Only loopback Ollama URLs are accepted. Browser origins require a pairing token; optional extension-ID pinning narrows them further. No cookie extraction is required: clicks and inputs run inside signed-in tabs.
 
@@ -36,7 +36,7 @@ The Node backend handles local model calls, SQLite state, scoped files and Offic
 ## Tool contracts
 
 - Browser: `click`, `type`, `select`, `scroll`, `navigate`, `open_tab`, `switch_tab`, `extract`.
-- Files: `read_file`, `analyze_csv`, `write_file`, `rename_file`, `create_artifact`.
+- Files: `read_file`, `analyze_csv`, `write_file`, `rename_file`, `create_artifact`, `create_dashboard`.
 - Control: `ask`, `done`.
 
 The selected scope and read-only flag constrain the model schema and the UI's action validator. File mutations require a preview ticket bound to the proposed bytes and original SHA256. Commit consumes the ticket, rechecks the original file, and atomically installs the new file. No delete operation is exposed.
@@ -58,3 +58,11 @@ A pending action is recorded before review/execution. If a run is interrupted wi
 7. Evaluate LoRA or task distillation only after collecting representative, consented failure data and keeping a held-out set. Training code and weights are not included here.
 
 These are future capabilities, not shipped claims.
+
+## Delegated outputs and completion checks
+
+The user can name up to 12 output paths during plan review and authorize automatic creation of those exact new files. The model cannot grant itself this capability. A preview indicating an existing file always requires review. Dashboard generation uses the CSV tool rather than model-computed totals.
+
+Before accepting `done`, the runner checks that every required path appears in its tool-confirmed deliverables. Missing outputs are sent back to the planner. It then asks the backend to verify non-empty bytes and the recorded SHA256. This prevents an unsupported claim of file creation; it does not establish semantic accuracy.
+
+The full workspace tab supports continuing when only the side panel closes. It must stay open and can still be interrupted by Chrome/process/OS suspension. Persistent queue orchestration remains future work.

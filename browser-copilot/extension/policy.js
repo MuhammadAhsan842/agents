@@ -1,8 +1,8 @@
 export function safeURL(s){const u=new URL(s);if(!['http:','https:'].includes(u.protocol)||u.username||u.password)throw Error('Only HTTP(S) pages are supported');return u.href;}
 export function originPattern(url){return new URL(safeURL(url)).origin+'/*';}
-export function needsApproval(action){return ['click','type','select','navigate','open_tab','write_file','rename_file','create_artifact'].includes(action.action);}
+export function needsApproval(action){return ['click','type','select','navigate','open_tab','write_file','rename_file','create_artifact','create_dashboard'].includes(action.action);}
 export function validateProposal(a,o,tabs,goal){
- if(!a||!['click','type','select','navigate','open_tab','switch_tab','extract','scroll','done','ask','read_file','analyze_csv','write_file','rename_file','create_artifact'].includes(a.action))throw Error('Unknown browser action');
+ if(!a||!['click','type','select','navigate','open_tab','switch_tab','extract','scroll','done','ask','read_file','analyze_csv','write_file','rename_file','create_artifact','create_dashboard'].includes(a.action))throw Error('Unknown browser action');
  if(['click','type','select'].includes(a.action)){
   const e=o.elements.find(e=>e.id===a.target);if(!e||e.disabled||e.sensitive)throw Error('Target is not actionable');
   if(a.action==='type'&&!e.editable)throw Error('Target is not editable');
